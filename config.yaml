@@ -1,0 +1,9 @@
+BASE_URL:
+- "https://globo.com"
+- "https://ge.globo.com"
+
+SUB_URLS:
+- "economia"
+- "politica"
+
+STOP_AT: 10
