@@ -1,0 +1,4 @@
+pytest-playwright
+python-box
+pyyaml
+unstructured
