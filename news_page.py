@@ -2,12 +2,15 @@ import requests
 from bs4 import BeautifulSoup, Tag
 import json
 from json.decoder import JSONDecodeError
+from tqdm import tqdm
 
 # existing JSON file content
 existing_data = []
 
 with open('links.txt', 'r') as links:
-    for link in links:
+    total_links = sum(1 for _ in links)
+
+    for link in tqdm(links, total=total_links, leave=False):
         url = link.strip()
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')

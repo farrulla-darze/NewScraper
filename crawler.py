@@ -33,7 +33,7 @@ async def main():
 
 
 		links = []
-		while len(links) < 1000:
+		while len(links) < 10000:
 			# Find the "Veja mais" link
 			veja_mais_link = await page.query_selector('a:has-text("Veja mais")')
 
