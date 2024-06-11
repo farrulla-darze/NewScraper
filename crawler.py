@@ -32,8 +32,7 @@ async def main():
 		await page.goto(cfg.BASE_URL[1], timeout=60000)
 
 
-		links = []
-		while len(links) < 10000:
+		while True:
 			# Find the "Veja mais" link
 			veja_mais_link = await page.query_selector('a:has-text("Veja mais")')
 
@@ -45,21 +44,29 @@ async def main():
 	 		# find divs containing the desired links  'feed-post-body-title'
 			divs_with_link = await page.query_selector_all('div[class*="feed-post-body-title"]')
 			
-			for div in divs_with_link:
-				# Find the link within the div
-				link = await div.query_selector('a')
-				links.append(link)
-			
-			print(f"Links: {len(links)}")
+			# check if there are enough links
+			count_links = len(divs_with_link)
+			print(f"Count links: {count_links}")
+			if count_links > 3000:
+				links = []
+				for div in divs_with_link:
+					# Find the link within the div
+					link = await div.query_selector('a')
+					links.append(link)
+				
+				print(f"Links: {len(links)}")
 
-		href_list = []
-		for i, link in enumerate(links):
+				href_list = []
+				for i, link in enumerate(links):
 
-			href = await link.get_attribute('href')
-			href_list.append(href)
+					href = await link.get_attribute('href')
+					href_list.append(href)
 			
-	 
-		save_links(href_list)
+				save_links(href_list)
+				break
+			else:
+				print(f"Not enough links, only found {count_links} scrolling down...")
+				
 
 
 

@@ -4,13 +4,16 @@ import json
 from json.decoder import JSONDecodeError
 from tqdm import tqdm
 
-# existing JSON file content
-existing_data = []
 
-with open('links.txt', 'r') as links:
-    total_links = sum(1 for _ in links)
+with open('links.txt', 'r') as links_file:
+    links = links_file.readlines()
+    total_links = len(links)
+    print(f"Total links: {total_links}")
 
-    for link in tqdm(links, total=total_links, leave=False):
+# Process each link
+data = []
+
+for link in tqdm(links, total=total_links, leave=False):
         url = link.strip()
         response = requests.get(url)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -18,6 +21,7 @@ with open('links.txt', 'r') as links:
         # Get title
         title_element = soup.select_one('h1.content-head__title')
         if title_element is None:
+            print(f"Title not found in {url}")
             continue # Skip this URL
 
         title = title_element.text
@@ -43,32 +47,23 @@ with open('links.txt', 'r') as links:
         time_element = soup.select_one('time[itemprop="datePublished"]')
         if time_element is None:
             datetime = "Sem data de publicação"
-        datetime = time_element.get('datetime')  # Get the value of the datetime attribute
+            continue
+        else:
+            datetime = time_element.get('datetime')  # Get the value of the datetime attribute
         #print(datetime)
 
-        # Find the <article> tag
+        # Find the <article> tag and get its content
         article_tag = soup.find('article')
+        if article_tag is None:
+            print(f"Article tag not found in {url}")
+            continue  # Skip this URL if the article tag is not found
 
-        # Get its children elements
-        article_contents = article_tag.contents
-
-        # Loop through the children elements and print their text content
-        article_content = ""
-        for child in article_contents:
-            # concatenate the content
-            article_content += child.get_text(strip=True)
+        article_content = "".join([child.get_text(strip=True) for child in article_tag.contents])
 
         # join title, subtitle, info, datetime and article_content
         full_content = title + "\n" + subtitle + "\n" + info + "\n" + datetime + "\n" + article_content
 
-        # Read existing data from saida.json
-        try:
-            with open('news_content.json', 'r', encoding="utf-8") as file:
-                existing_data = json.load(file)
-        except (FileNotFoundError, JSONDecodeError):
-            pass
-
-        len(existing_data)
+               
         # save the content to a json file
         new_data = {
             'content': full_content,
@@ -82,8 +77,9 @@ with open('links.txt', 'r') as links:
         }
 
         # Append the new data to the existing data
-        existing_data.append(new_data)
+        data.append(new_data)
 
-        # Write all data to saida.json
-        with open('news_content.json', 'w', encoding="utf-8") as file:
-            json.dump(existing_data, file, ensure_ascii=False, indent=4)
+# Write all data to saida.json
+with open('news_content.json', 'w', encoding="utf-8") as file:
+    json.dump(data, file, ensure_ascii=False, indent=4)
+
